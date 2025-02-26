@@ -202,3 +202,7 @@ summary(first_stage_9)
 
 reduced_form_9 <- lm(log_sales ~ log_tax, data = data_1991_2015)
 summary(reduced_form_9)
+
+## CREATE WORKSPACE
+rm(list=c("final.data"))
+save.image("/Users/lisbethvargas/Desktop/GitHub/Homework-3/3-1/hwk3_workspace.Rdata")
