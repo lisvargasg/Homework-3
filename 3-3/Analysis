@@ -1,0 +1,152 @@
+# Meta --------------------------------------------------------------------
+# Author:        Lisbeth Vargas
+# Date Created:  2/24/2025
+# Date Edited:   3/21/2025
+# Homework 3-3
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table, gdata, scales, fixest)
+
+final.data <- readRDS("/Users/lisbethvargas/Desktop/GitHub/Homework-3/3-1/data/output/TaxBurden_Data.rds")
+
+# Question 1: Change in Cigarette Tax 
+final.data <- final.data %>%
+  arrange(state, Year) %>%
+  group_by(state) %>%
+  mutate(tax_changed = if_else(lag(tax_dollar, order_by = Year) != tax_dollar, 1, 0)) %>%
+  ungroup()
+
+tax_change_data <- final.data %>%
+  filter(Year >= 1970 & Year <= 1985)
+
+tax_change_proportion <- tax_change_data %>%
+  group_by(Year) %>%
+  summarize(proportion_changed = mean(tax_changed, na.rm = TRUE)) %>%
+  ungroup()
+
+q1 <- ggplot(tax_change_proportion, aes(x = Year, y = proportion_changed)) +
+  geom_bar(stat = "identity", fill = "royalblue") +
+  labs(
+    title = "Proportion of States with a Change in Cigarette Tax (1970-1985)",
+    x = "Year",
+    y = "Proportion of States") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent)
+
+# Question 2: Average Tax and Cigarette Price
+avg_tax_price_data <- final.data %>%
+  group_by(Year) %>%
+  summarize(
+    avg_tax = mean(tax_dollar, na.rm = TRUE),
+    avg_price = mean(cost_per_pack, na.rm = TRUE))
+
+q2 <- ggplot(avg_tax_price_data, aes(x = Year)) +
+  geom_line(aes(y = avg_tax), color = "blue", size = 1.2, linetype = "solid") +
+  geom_line(aes(y = avg_price), color = "red", size = 1.2, linetype = "solid") +
+  scale_y_continuous(
+    name = "Average Tax ($2012)",
+    sec.axis = sec_axis(~ ., name = "Average Price ($2012)")) +
+  labs(
+    title = "Average Cigarette Tax and Price",
+    x = "Year") +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    axis.title.y.right = element_text(size = 10) +
+  scale_color_manual(values = c("blue", "red")))
+
+# QUESTION 3 AND 4
+final.data <- final.data %>% ungroup() %>%
+  mutate(
+    price_cpi_2012 = cost_per_pack * (cpi_2012 / index),
+    total_tax_cpi_2012 = tax_dollar * (cpi_2012 / index)) %>%
+  arrange(state, Year) %>%
+  group_by(state) %>%
+  mutate(tax_change = tax_state != lag(tax_state, default = first(tax_state)))
+
+cig.data.change <- final.data %>% ungroup() %>%
+  filter(Year==1970) %>% 
+  select(state, price_1970 = price_cpi_2012) %>%
+  left_join(final.data %>% 
+  filter(Year==2018) %>% 
+  select(state, price_2018 = price_cpi_2012),
+          by=c('state')) %>% 
+  mutate(price_change = price_2018-price_1970)
+
+high.change <- cig.data.change %>% slice_max(price_change, n=5) %>% mutate(change_group="high")
+low.change <- cig.data.change %>% slice_min(price_change, n=5) %>% mutate(change_group="low")
+change.group <- rbind(high.change, low.change)
+
+top.bottom.price <- final.data %>% ungroup() %>%
+  inner_join(change.group %>% select(state, change_group),
+             by=c("state"))
+
+# Question 3: Highest Cigarette Prices
+q3 <- top.bottom.price %>% filter(change_group=="high") %>%
+ggplot(aes(x = Year, y = sales_per_capita, color = state, group = state)) +
+  stat_summary(fun="mean",geom="line")+ 
+  labs(
+    title = "Average Packs Sold per Capita for 5 Highest Price-Increasing States",
+    x = "Year",
+    y = "Average Packs Sold (per Capita)" ) +
+  scale_color_brewer(palette = "Set1", name = "State") +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 10, face = "bold"),
+    axis.title.y = element_text(size = 10, face = "bold"))
+
+# Question 4: Lowest Cigarette Prices
+q4 <- top.bottom.price %>% filter(change_group=="low") %>%
+ggplot(aes(x = Year, y = sales_per_capita, color = state, group = state)) +
+  stat_summary(fun="mean",geom="line")+ 
+  labs(
+    title = "Average Packs Sold per Capita for 5 Lowest Price-Increasing States",
+    x = "Year",
+    y = "Average Packs Sold (per Capita)"   
+  ) +
+  scale_color_brewer(palette = "Set1", name = "State") +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 10, face = "bold"),
+    axis.title.y = element_text(size = 10, face = "bold"))
+
+# Question 6: Price Elasticity of Demand
+final.data <- final.data %>%
+  mutate(
+    ln_sales = log(sales_per_capita),
+    ln_price = log(cost_per_pack),
+    ln_tax_dollar = log(tax_dollar))
+
+q6 <- feols(ln_sales~ln_price_2012, data=final.data %>% filter(Year>=1970 & Year<=1990))
+
+# Question 7: Regression with Tax as an Instrument
+q7 <- feols(ln_sales ~ ln_price_2012 | ln_tax_2012, 
+            data = final.data %>% filter(Year >= 1970 & Year <= 1990))
+
+# Question 8: First Stage & Reduced Form
+q8first.stage <- feols(ln_price_2012~ln_tax_2012, data=final.data %>% filter(Year>=1970 & Year<=1990))
+q8reduced.form <- feols(ln_sales~ln_tax_2012, data=final.data %>% filter(Year>=1970 & Year<=1990))
+
+# Question 9: Repeat for 1991-2015
+## a) Price Elasticity for Demand
+q9a <- feols(ln_sales~ln_price_2012, data=final.data %>% filter(Year>=1991 & Year<=2015))
+
+## b) Regression with Tax as an Instrument
+q9b <- feols(ln_sales ~ ln_price_2012 | ln_tax_2012, 
+            data = final.data %>% filter(Year >= 1991 & Year <= 2015))
+
+## c) First Stage & Reduced Form
+first_stage_9 <- lm(log_price ~ log_tax, data = data_1991_2015)
+summary(first_stage_9)
+
+reduced_form_9 <- lm(log_sales ~ log_tax, data = data_1991_2015)
+summary(reduced_form_9)
+
+## CREATE WORKSPACE
+rm(list=c("final.data"))
+save.image("/Users/lisbethvargas/Desktop/GitHub/Homework-3/3-1/hwk3_workspace.Rdata")

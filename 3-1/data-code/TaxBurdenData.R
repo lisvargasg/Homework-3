@@ -46,11 +46,15 @@ cpi.data <- cpi.data %>%
   group_by(Year) %>%
   summarize(index=mean(index, na.rm=TRUE))
 
+cpi.2012 <- cpi.data %>%
+  filter(Year==2012) %>%
+  select(index) %>% as.numeric
+
 # Form final dataset ------------------------------------------------------
 # adjust to 2010 dollars
 final.data <- final.data %>%
-  left_join(cpi.data, by="Year") %>%
-  mutate(price_cpi=cost_per_pack*(218/index))
+  mutate(cpi_2012=cpi.2012) %>%
+  left_join(cpi.data, by="Year")
 
 write_tsv(final.data,"/Users/lisbethvargas/Desktop/GitHub/Homework-3/3-1/data/output/TaxBurden_Data.txt",append=FALSE,col_names=TRUE)
 write_rds(final.data,"/Users/lisbethvargas/Desktop/GitHub/Homework-3/3-1/data/output/TaxBurden_Data.rds")
