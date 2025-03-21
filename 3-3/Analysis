@@ -27,7 +27,7 @@ tax_change_proportion <- tax_change_data %>%
 q1 <- ggplot(tax_change_proportion, aes(x = Year, y = proportion_changed)) +
   geom_bar(stat = "identity", fill = "royalblue") +
   labs(
-    title = "Proportion of States with a Change in Cigarette Tax (1970-1985)",
+    title = "Proportion of States with a Change in Cigarette Tax",
     x = "Year",
     y = "Proportion of States") +
   theme_minimal() +
@@ -89,31 +89,31 @@ q3 <- top.bottom.price %>% filter(change_group=="high") %>%
 ggplot(aes(x = Year, y = sales_per_capita, color = state, group = state)) +
   stat_summary(fun="mean",geom="line")+ 
   labs(
-    title = "Average Packs Sold per Capita for 5 Highest Price-Increasing States",
+    title = "Packs Sold per Capita for Highest Price-Increasing States",
     x = "Year",
     y = "Average Packs Sold (per Capita)" ) +
   scale_color_brewer(palette = "Set1", name = "State") +
-  theme_minimal(base_size = 14) +
+  theme_minimal(base_size = 10) +
   theme(
-    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-    axis.title.x = element_text(size = 10, face = "bold"),
-    axis.title.y = element_text(size = 10, face = "bold"))
+    plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 8, face = "bold"),
+    axis.title.y = element_text(size = 8, face = "bold"))
 
 # Question 4: Lowest Cigarette Prices
 q4 <- top.bottom.price %>% filter(change_group=="low") %>%
 ggplot(aes(x = Year, y = sales_per_capita, color = state, group = state)) +
   stat_summary(fun="mean",geom="line")+ 
   labs(
-    title = "Average Packs Sold per Capita for 5 Lowest Price-Increasing States",
+    title = "Packs Sold per Capita for Lowest Price-Increasing States",
     x = "Year",
     y = "Average Packs Sold (per Capita)"   
   ) +
   scale_color_brewer(palette = "Set1", name = "State") +
-  theme_minimal(base_size = 14) +
+  theme_minimal(base_size = 10) +
   theme(
-    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-    axis.title.x = element_text(size = 10, face = "bold"),
-    axis.title.y = element_text(size = 10, face = "bold"))
+    plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 8, face = "bold"),
+    axis.title.y = element_text(size = 8, face = "bold"))
 
 # Question 6: Price Elasticity of Demand
 final.data <- final.data %>%

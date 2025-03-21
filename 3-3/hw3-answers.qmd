@@ -66,6 +66,7 @@ q4
 ```
 \vspace{1cm}
 \noindent Question 5. Compare the trends in sales from the 5 states with the highest price increases to those with the lowest price increases. 
+
 \vspace{0.5cm}
 There exists more variety between the states with the lowest price increases than those with the highest. Considering the bottom five states are more rural than their top 5 counterparts, this could demonstrate differences in economic structures and demographics. Sales decline sharply among the highest price states, while lowest price states demonstrate a steady decline. All states sell the most packs around 1980s. 
 
@@ -84,7 +85,7 @@ q6_tidy %>%
   select(term, estimate, std.error, statistic, p.value) %>%
   kable(format = "markdown", digits = c(0, 3, 3, 2, 3), caption = "Log Sales on Log Price Regression Results")
 ```
-\noindent I am interpreting my results. 
+\noindent The price elasticity of demand is -0.172; for every 1% increase in price, sales decrease by 0.172%. As expected, price and sales are inversely related and demand is inelastic -- a price increase leads to a decrease in sales, but the decrease in sales is smaller than the price increase. Results are statistically significant. 
 
 \vspace{1cm}
 
@@ -101,7 +102,7 @@ q7_tidy %>%
   select(term, estimate, std.error, statistic, p.value) %>%
   kable(format = "markdown", digits = c(0, 3, 3, 2, 3), caption = "Log Sales on Log Price Regression with Instrument Results")
 ```
-\noindent I am interpreting results. 
+\noindent In this regression, sales and price have a positive but insignificant relationship. An increase in price is only associated with a slight increase in sales of 0.059% for every 1% increase in price. The model suggests that cigarette sales are inelastic with respect to price. The instrument may not capture enough of the variation in price to make a conclusion about the relationship between price and sales. 
 
 \newpage
 \noindent Question 8. Show the first stage and reduced-form results from the instrument.
@@ -175,3 +176,8 @@ q9c2_tidy %>%
 
 \newpage
 \noindent Question 10. Compare your elasticity estimates from 1970-1990 versus those from 1991-2015. Are they different? If so, why?
+
+\vspace{0.5cm}
+Elasticity estimates for both OLS regressions demonstrate a negative effect between price and sales. The results for 1991-2015 suggest a stronger and more statistically significant relationship between tax and sales at -0.666. This difference may be due to different market conditions as consumers became more responsive to price changes. 
+
+The elasticity estimates using the IV model differ between periods -- with elasticaity becoming weaker, although still not significant. In both cases, however, the price effect on sales is weak and not statistically reliable. This suggests that the relationship between price and sales may be overestimated in the OLS model due to endogeneity. 
